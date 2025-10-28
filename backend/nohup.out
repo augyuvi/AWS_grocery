@@ -1,0 +1,47 @@
+Using Database: postgresql://grocery_user:GroceryPass123@localhost:5432/grocerymate_db
+Running in Local Docker PostgreSQL
+Using Database: postgresql://grocery_user:GroceryPass123@localhost:5432/grocerymate_db
+Frontend build is already present. Checking for updates...
+Frontend build is up to date.
+UPLOAD_FOLDER set to: /home/ec2-user/AWS_grocery/backend/avatar
+ * Serving Flask app 'app'
+ * Debug mode: on
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.31.37.33:5000
+Press CTRL+C to quit
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 143-699-109
+176.2.3.191 - - [24/Oct/2025 11:47:34] "GET / HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/js/main.e6267624.js HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/css/main.3a49d97d.css HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/media/dp-img3.1d32250abac91f7f9ea2.jpg HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/media/dp-img1.47e271c7d21021ee3399.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/media/brand5.ae7e964bdb1c9519ef99.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /api/config HTTP/1.1" 308 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /api/me/info HTTP/1.1" 422 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /static/media/dp-img2.f3456a720c050f63107b.jpg HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /api/me/basket HTTP/1.1" 422 -
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /api/me/all-users HTTP/1.1" 422 -
+[2025-10-24 11:47:35,968] ERROR in product_service: Error fetching products: (psycopg2.errors.UndefinedTable) relation "products" does not exist
+LINE 2: FROM products
+             ^
+
+[SQL: SELECT products.id AS products_id, products.name AS products_name, products.description AS products_description, products.price AS products_price, products.category AS products_category, products.image_url AS products_image_url, products.is_alcohol AS products_is_alcohol 
+FROM products]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+[2025-10-24 11:47:35,968] INFO in product_controller: Fetched all products.
+176.2.3.191 - - [24/Oct/2025 11:47:35] "GET /api/products/all_products HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /api/config/ HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /api/me/info HTTP/1.1" 422 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/Frame2.8640dfde1f04338ac04f.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/call%20icon.ccb2ba81d7d1a543480d5777853bf4d2.svg HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/flowerkolly.1bfe9cb24524e4a750ed.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/cherry.811c87a50b1b86ac8b1c.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /api/me/info HTTP/1.1" 422 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/orange-slice.a9c937a234c538f11c6e.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /api/me/info HTTP/1.1" 422 -
+176.2.3.191 - - [24/Oct/2025 11:47:36] "GET /static/media/plate.78aa09fd85052339a3c7.png HTTP/1.1" 200 -
+176.2.3.191 - - [24/Oct/2025 11:47:39] "GET /favicon.ico HTTP/1.1" 200 -
