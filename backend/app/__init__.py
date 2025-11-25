@@ -215,12 +215,14 @@ def create_app():
     from .routes.product_routes import product_bp
     from .routes.health_routes import health_bp
     from .routes.config_routes import config_bp
+    from .routes.report_routes import report_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(config_bp)
+    app.register_blueprint(report_bp)
 
     def inject_backend_url():
         """Get the backend URL based on the current request, works dynamically in all environments."""
@@ -264,3 +266,39 @@ def setup_logging(app):
 
     app.logger.addHandler(file_handler)
     app.logger.setLevel(logging.INFO)
+
+    # ------------------------------------------------------------------
+    # 🌟 CloudWatch Logging
+    #
+    # I am adding CloudWatch logging so that my backend logs (errors,
+    # warnings, API calls, startup messages) are also visible directly
+    # inside the AWS CloudWatch console.
+    #
+    # This does NOT replace my existing local file logging. It simply
+    # adds an EXTRA logging destination in the cloud. This is important
+    # because:
+    #
+    # 1. If my EC2 instance restarts or crashes, local logs may be lost.
+    # 2. CloudWatch keeps logs safe and centralized.
+    # 3. I can monitor my application without SSH into EC2.
+    # 4. This makes my project production-ready like real AWS systems.
+    #
+    # If CloudWatch isn’t configured or the IAM role doesn’t have
+    # permission, nothing breaks — the app will still run normally.
+    # ------------------------------------------------------------------
+    try:
+        import watchtower
+
+        cw_handler = watchtower.CloudWatchLogHandler(
+            log_group="grocerymate-app",   # CloudWatch group name
+            stream_name="backend"          # Log stream name
+        )
+        cw_handler.setLevel(logging.INFO)
+
+        # Add CloudWatch to app logging
+        app.logger.addHandler(cw_handler)
+        app.logger.info("CloudWatch logging initialized")
+
+    except Exception as e:
+        # If anything fails here, app still runs — we only log the failure
+        app.logger.error(f"CloudWatch setup failed: {e}")

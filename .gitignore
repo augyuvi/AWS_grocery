@@ -3,8 +3,4 @@ frontend/frontend-build.zip
 frontend/temp_extract/
 frontend/src/config.js~
 venv/
-<<<<<<< HEAD
-=======
 .terraform/
-.terraform/
->>>>>>> version2-clean
