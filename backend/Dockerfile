@@ -18,3 +18,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # I run my Flask application using run.py as the entrypoint.
 CMD ["python", "run.py"]
+
