@@ -97,8 +97,21 @@ const Footer = () => {
                     </div>
                 </Fade>
             </div>
+
+            {/* ---------- Nithya added signature section START ---------- */}
+            <div className="footer-signature">
+                © 2025 GroceryMate | Built & Deployed by <b>Nithya Srinivasan</b> |
+                Powered by AWS EC2 · RDS · S3 · CloudWatch
+            </div>
+            {/* ---------- Nithya added signature section END ------------ */}
+
         </div>
     );
 };
 
 export default Footer;
+
+
+
+
+

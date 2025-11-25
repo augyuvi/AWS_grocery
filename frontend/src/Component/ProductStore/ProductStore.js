@@ -7,6 +7,10 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 
 const ProductStore = ({ products, isFav, basket, setBasket }) => {
+
+    // Nithya added: loading spinner state
+  const [loading, setLoading] = useState(true);
+
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [priceRanges, setPriceRanges] = useState([]);
@@ -142,6 +146,17 @@ const ProductStore = ({ products, isFav, basket, setBasket }) => {
   useEffect(() => {
     setFilteredProducts(isFav ? favProducts : products);
   }, [isFav, favProducts, products]);
+
+
+  // Nithya added: show loading spinner
+if (loading) {
+  return (
+    <div style={{ textAlign: "center", padding: "40px", fontSize: "22px" }}>
+      🔄 Loading products, please wait...
+    </div>
+  );
+}
+
 
   return (
     <div className="product-store-container">
