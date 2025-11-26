@@ -5,171 +5,280 @@
 [![Python](https://img.shields.io/badge/Language-Python%2C%20JavaScript-blue)](https://www.python.org/)
 [![OS](https://img.shields.io/badge/OS-Linux%2C%20Windows%2C%20macOS-green)](https://www.kernel.org/)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL-336791)](https://www.postgresql.org/)
-[![GitHub Release](https://img.shields.io/github/v/release/AlejandroRomanIbanez/AWS_grocery)](https://github.com/AlejandroRomanIbanez/AWS_grocery/releases/tag/v2.0.0)
-[![Free](https://img.shields.io/badge/Free_for_Non_Commercial_Use-brightgreen)](#-license)
+[![IaC](https://img.shields.io/badge/IaC-Terraform-7B42BC)](https://www.terraform.io/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-black)](https://github.com/features/actions)
+[![AWS](https://img.shields.io/badge/Cloud-AWS-orange)](https://aws.amazon.com/)
 
-⭐ **Star us on GitHub** — it motivates us a lot!
+⭐ **Star us on GitHub** — it motivates us a lot!  
+> **Credits:** Original application by **Alejandro Román Ibañez**  
+> **Cloud deployment + infrastructure work:** **Nithya Srinivasan**
 
----
+--- 
 
 ## 📌 Table of Contents
 
 - [Overview](#-overview)
-- [Features](#-features)
-- [Screenshots & Demo](#-screenshots--demo)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-  - [Clone Repository](#-clone-repository)
-  - [Configure PostgreSQL](#-configure-postgresql)
-  - [Populate Database](#-populate-database)
-  - [Set Up Python Environment](#-set-up-python-environment)
-  - [Set Environment Variables](#-set-environment-variables)
-  - [Start the Application](#-start-the-application)
-- [Usage](#-usage)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [What I Built (Cloud Track)](#-what-i-built-cloud-track)
+- [Architecture Diagrams](#-architecture-diagrams)
+- [AWS Services Used](#-aws-services-used)
+- [Repo Structure](#-repo-structure)
+- [Environment Variables](#-environment-variables)
+- [Deployment (Terraform + GitHub Actions)](#-deployment-terraform--github-actions)
+- [Screenshots](#-screenshots)
+- [Troubleshooting](#-troubleshooting)
+- [Rollback / Cleanup](#-rollback--cleanup)
+- [FAQ](#-faq)
+- [Glossary](#-glossary)
+- [My Contributions](#-my-contributions)
+- [Future Enhancements](#-future-enhancements)
+- [License & Credits](#-license--credits)
+
+---
 
 ## 🚀 Overview
 
-GroceryMate is an application developed as part of the Masterschools program by **Alejandro Roman Ibanez**. It is a modern, full-featured e-commerce platform designed for seamless online grocery shopping. It provides an intuitive user interface and a secure backend, allowing users to browse products, manage their shopping basket, and complete purchases efficiently.
+**GroceryMate** is a full-stack grocery e-commerce app (**React + Flask**) deployed on AWS.
 
-GroceryMate is a modern, full-featured e-commerce platform designed for seamless online grocery shopping. It provides an intuitive user interface and a secure backend, allowing users to browse products, manage their shopping basket, and complete purchases efficiently.
+This README is written from a **Cloud Engineer** perspective: it explains the **AWS infrastructure + deployment setup** I implemented around the application.
 
-## 🛒 Features
+Core user flows:
+- Browse products
+- Search products
+- Favorites
+- Profile avatar upload (S3)
 
-- **🛡️ User Authentication**: Secure registration, login, and session management.
-- **🔒 Protected Routes**: Access control for authenticated users.
-- **🔎 Product Search & Filtering**: Browse products, apply filters, and sort by category or price.
-- **⭐ Favorites Management**: Save preferred products.
-- **🛍️ Shopping Basket**: Add, view, modify, and remove items.
-- **💳 Checkout Process**:
-  - Secure billing and shipping information handling.
-  - Multiple payment options.
-  - Automatic total price calculation.
+---
 
-## 📸 Screenshots & Demo
+## 🧱 What I Built (Cloud Track)
 
-![imagen](https://github.com/user-attachments/assets/ea039195-67a2-4bf2-9613-2ee1e666231a)
-![imagen](https://github.com/user-attachments/assets/a87e5c50-5a9e-45b8-ad16-2dbff41acd00)
-![imagen](https://github.com/user-attachments/assets/589aae62-67ef-4496-bd3b-772cd32ca386)
-![imagen](https://github.com/user-attachments/assets/2772b85e-81f7-446a-9296-4fdc2b652cb7)
+- Provisioned AWS infrastructure using **Terraform**
+- Deployed the app on **EC2** (containerized/Docker)
+- Configured **RDS (PostgreSQL)** for the application database
+- Enabled **S3** for avatar uploads (and storage for artifacts/reports if needed)
+- Centralized logs using **CloudWatch Logs**
+- Automated deployment via **GitHub Actions** (Terraform workflow)
 
-https://github.com/user-attachments/assets/d1c5c8e4-5b16-486a-b709-4cf6e6cce6bc
+---
 
-## 📋 Prerequisites
+## 🗺️ Architecture Diagrams
 
-Ensure the following dependencies are installed before running the application:
+### ✅ Main Architecture (Flow Diagram)
 
-- **🐍 Python (>=3.11)**
-- **🐘 PostgreSQL** – Database for storing product and user information.
-- **🛠️ Git** – Version control system.
+![Project Diagram](assets/Diagram/project-diagram.png)
 
-## ⚙️ Installation
+---
 
-### 🔹 Clone Repository
+## ☁️ AWS Services Used
 
-```sh
-git clone --branch version2 https://github.com/AlejandroRomanIbanez/AWS_grocery.git && cd AWS_grocery
-```
+| Service | Purpose |
+|---|---|
+| **EC2** | Runs the application (frontend + backend) |
+| **ALB** | Public entrypoint and routing to EC2 |
+| **RDS (PostgreSQL)** | Managed database |
+| **S3** | Avatar storage (and optional artifacts/reports) |
+| **IAM** | Roles/policies for EC2 + CI/CD |
+| **CloudWatch Logs** | Centralized application logs |
+| **VPC + Subnets + Route Tables** | Network isolation (public + private) |
+| **Security Groups** | Traffic control between components |
 
-### 🔹 Configure PostgreSQL
+---
 
-Before creating the database user, you can choose a custom username and password to enhance security. Replace `<your_secure_password>` with a strong password of your choice in the following commands.
+## 🗂️ Repo Structure
 
-Create database and user:
+```text
+.
+├── backend/
+├── frontend/
+├── infrastructure/        # Terraform (main deployment)
+├── bootstrap/             # Terraform (remote state / initial setup) - if present
+├── assets/
+│   ├── Diagram/
+│   │   └── project-diagram.png
+│   └── Screenshots/
+│       ├── homepage.png
+│       ├── product-search.png
+│       ├── favorites.png
+│       └── avatar-upload.png
+└── README.md
+````
 
-```sh
-psql -U postgres -c "CREATE DATABASE grocerymate_db;"
-psql -U postgres -c "CREATE USER grocery_user WITH ENCRYPTED PASSWORD '<your_secure_password>';"  # Replace <your_secure_password> with a strong password of your choice
-psql -U postgres -c "ALTER USER grocery_user WITH SUPERUSER;"
-```
+---
 
-### 🔹 Populate Database
+## 🔐 Environment Variables
 
-```sh
-psql -U grocery_user -d grocerymate_db -f backend/app/sqlite_dump_clean.sql
-```
+Create a `.env` file (example shown below).
+✅ Do **not** commit `.env` to GitHub.
 
-Verify insertion:
-
-```sh
-psql -U grocery_user -d grocerymate_db -c "SELECT * FROM users;"
-psql -U grocery_user -d grocerymate_db -c "SELECT * FROM products;"
-```
-
-### 🔹 Set Up Python Environment
-
-
-Install dependencies in an activated virtual Enviroment:
-
-```sh
-cd backend
-pip install -r requirements.txt
-```
-OR (if pip doesn't exist)
-```sh
-pip3 install -r requirements.txt
-```
-
-### 🔹 Set Environment Variables
-
-Create a `.env` file:
-
-```sh
-touch .env  # macOS/Linux
-ni .env -Force  # Windows
-```
-
-Generate a secure JWT key:
-
-```sh
-python3 -c "import secrets; print(secrets.token_hex(32))"
-```
-
-Update `.env`:
-
-```sh
-nano .env
-```
-
-Fill in the following information (make sure to replace the placeholders):
+Example:
 
 ```ini
-JWT_SECRET_KEY=<your_generated_key>
+JWT_SECRET_KEY=your_generated_key
+
 POSTGRES_USER=grocery_user
-POSTGRES_PASSWORD=<your_password>
+POSTGRES_PASSWORD=your_password
 POSTGRES_DB=grocerymate_db
 POSTGRES_HOST=localhost
 POSTGRES_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}
 ```
 
-### 🔹 Start the Application
+(Optional AWS-related variables if your code uses them)
 
-```sh
-python3 run.py
+```ini
+AWS_REGION=eu-central-1
+S3_BUCKET_NAME=your_bucket_name
 ```
 
-## 📖 Usage
+---
 
-- Access the application at [http://localhost:5000](http://localhost:5000)
-- Register/Login to your account
-- Browse and search for products
-- Manage favorites and shopping basket
-- Proceed through the checkout process
+## 🚀 Deployment (Terraform + GitHub Actions)
 
-## 🤝 Contributing
+### Prerequisites
 
-We welcome contributions! Please follow these steps:
+* AWS Account
+* Terraform installed (if using local apply)
+* GitHub Actions configured for deploy (and role/credentials set)
 
-1. Fork the repository.
-2. Create a new feature branch (`feature/your-feature`).
-3. Implement your changes and commit them.
-4. Push your branch and create a pull request.
+### GitHub Secrets (typical)
 
-## 📜 License
+Keep names aligned with your workflow. Common ones:
 
-This project is licensed under the MIT License.
+* `TF_VAR_region`
+* `TF_VAR_db_user`
+* `TF_VAR_db_password`
+* `TF_VAR_db_name`
+* `TF_VAR_bucket_name`
+* `TF_VAR_allowed_ssh_ip` *(optional)*
+* `AWS_ROLE_ARN` *(if using OIDC role for GitHub Actions)*
 
+### Deploy Steps (typical)
 
+1. Push to your deploy branch (often `main`)
+2. GitHub Actions runs Terraform (init/plan/apply)
+3. Verify:
 
+   * Application is reachable via **ALB DNS**
+   * `/health` endpoint (if present) returns OK
+   * App features work (browse/search/favorites/avatar)
 
+---
+
+## 📸 Screenshots
+
+### ✅ Home / Landing
+
+![Home](assets/Screenshots/homepage.png)
+
+### ✅ Product Search
+
+![Search](assets/Screenshots/product-search.png)
+
+### ✅ Favorites Page
+
+![Favorites](assets/Screenshots/favorites.png)
+
+### ✅ Avatar Upload
+
+![Avatar Upload](assets/Screenshots/avatar-upload.png)
+
+---
+
+## 🧯 Troubleshooting
+
+**Terraform apply fails**
+
+* Missing GitHub secrets / TF_VARs
+* Wrong region / AMI / permissions
+* State lock issues (if DynamoDB used)
+
+**App not loading**
+
+* Check EC2 user-data / cloud-init logs
+* Confirm ALB target health checks
+* Verify security group rules (ALB → EC2)
+
+**RDS connection errors**
+
+* DB is private: connection must be from EC2 inside VPC
+* Missing SG rule: `RDS 5432` from `EC2 SG`
+* Wrong endpoint or credentials in `.env`
+
+**S3 upload fails**
+
+* EC2 IAM role missing `s3:PutObject` / `s3:GetObject`
+* Wrong bucket name/region
+
+---
+
+## 🔁 Rollback / Cleanup
+
+### Destroy infrastructure
+
+```sh
+cd infrastructure
+terraform destroy
+```
+
+If you have bootstrap resources:
+
+```sh
+cd ../bootstrap
+terraform destroy
+```
+
+---
+
+## ❓ FAQ
+
+**How do I change the instance type?**
+Update the Terraform variable for `instance_type` and apply.
+
+**How do I access the database?**
+Connect from an EC2 instance inside the VPC to the RDS endpoint (RDS is private by design).
+
+**Where are avatars stored?**
+In the configured S3 bucket.
+
+---
+
+## 📚 Glossary
+
+* **VPC**: Private network in AWS
+* **ALB**: Routes incoming traffic to EC2
+* **EC2**: Virtual server to run the app
+* **RDS**: Managed PostgreSQL database
+* **S3**: Object storage (avatars/files)
+* **IAM**: Permissions and roles
+* **CloudWatch Logs**: Central logging
+
+---
+
+## 🙋‍♀️ My Contributions
+
+* AWS deployment setup (VPC, Subnets, SGs, IAM, ALB, EC2)
+* RDS PostgreSQL integration
+* S3 integration for avatar upload
+* CloudWatch logging
+* Terraform structure + deployment workflow (GitHub Actions)
+* README documentation + diagrams
+
+---
+
+## 🔮 Future Enhancements
+
+* HTTPS using **ACM + ALB listener**
+* **CloudFront** for static assets
+* Monitoring dashboards + alarms
+* Autoscaling improvements
+* Add caching layer (Redis/ElastiCache)
+
+---
+
+## 📝 License & Credits
+
+MIT License.
+
+**Original project:** Alejandro Román Ibañez
+**Cloud deployment + infrastructure documentation:** Nithya Srinivasan (2025)
+
+```
+```
