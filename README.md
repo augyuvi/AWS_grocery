@@ -47,6 +47,12 @@ Core user flows:
 - Favorites
 - Profile avatar upload (S3)
 
+**For the cloud/monitoring module I also implemented:**
+
+* Centralized backend logging with CloudWatch Logs
+* A CPUUtilization alarm on the EC2 instance
+* An S3-triggered Lambda function that reacts to new avatar uploads and logs them to CloudWatch (serverless, event-driven pattern)
+
 ---
 
 ## 🧱 What I Built (Cloud Track)
@@ -54,34 +60,95 @@ Core user flows:
 - Provisioned AWS infrastructure using **Terraform**
 - Deployed the app on **EC2** (containerized/Docker)
 - Configured **RDS (PostgreSQL)** for the application database
-- Enabled **S3** for avatar uploads (and storage for artifacts/reports if needed)
-- Centralized logs using **CloudWatch Logs**
-- Automated deployment via **GitHub Actions** (Terraform workflow)
+- Enabled S3 for avatar uploads (and storage for artifacts/reports if needed)
+- Centralized logs using CloudWatch Logs (EC2 agent sends backend/logs/app.log to the log group grocery-backend-logs)
+- Created a CloudWatch CPUUtilization alarm for the EC2 instance (“My First instance”) to detect high CPU usage
+
+**Implemented an S3 → Lambda integration:**
+- Bucket: grocerymate-avatars-nithyasri2025
+- Function: grocery-s3-logger (Python)
+- Trigger: “All object create events” in the avatar bucket
+- Behavior: logs bucket and object key to CloudWatch Logs (/aws/lambda/grocery-s3-logger) whenever a new avatar is uploaded
+- Automated deployment via GitHub Actions (Terraform workflow)
 
 ---
 
 ## 🗺️ Architecture Diagrams
 
-### ✅ Main Architecture (Flow Diagram)
+### ✅ Main Architecture
 
-![Project Diagram](assets/Diagram/project-diagram.png)
+![Project Diagram](assets/Diagram/project-diagram.png))
+
+The diagram shows the main user and data flows:
+
+- Users access the app through an Application Load Balancer, which forwards traffic to an EC2 instance running the React frontend and Flask backend in Docker.
+- The backend connects to an RDS PostgreSQL database inside a private subnet.
+- Profile avatars are stored in the S3 bucket `grocerymate-avatars-nithyasri2025`. New uploads in this bucket trigger the Lambda function `grocery-s3-logger`, which logs the event details to CloudWatch Logs.
+- The EC2 instance writes application logs to `backend/logs/app.log`, which are shipped by the CloudWatch agent to the log group `grocery-backend-logs`.
+- CloudWatch Metrics and a CPUUtilization alarm monitor the EC2 instance so high CPU usage can be detected.
+
 
 ---
 
 ## ☁️ AWS Services Used
 
-| Service | Purpose |
-|---|---|
-| **EC2** | Runs the application (frontend + backend) |
-| **ALB** | Public entrypoint and routing to EC2 |
-| **RDS (PostgreSQL)** | Managed database |
-| **S3** | Avatar storage (and optional artifacts/reports) |
-| **IAM** | Roles/policies for EC2 + CI/CD |
-| **CloudWatch Logs** | Centralized application logs |
-| **VPC + Subnets + Route Tables** | Network isolation (public + private) |
-| **Security Groups** | Traffic control between components |
+
+| Service                                | Purpose                                                                                                            |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **EC2**                                | Runs the application (frontend + backend)                                                                          |
+| **ALB**                                | Public entrypoint and routing to EC2                                                                               |
+| **RDS (PostgreSQL)**                   | Managed database                                                                                                   |
+| **S3**                                 | Avatar storage (and optional artifacts/reports) – bucket `grocerymate-avatars-nithyasri2025` for profile images    |
+| **IAM**                                | Roles/policies for EC2, Lambda and CI/CD                                                                           |
+| **CloudWatch Logs / Metrics / Alarms** | Centralized application logs (`grocery-backend-logs`), Lambda logs, and a CPUUtilization alarm on the EC2 instance |
+| **AWS Lambda**                         | `grocery-s3-logger` function triggered by S3 avatar uploads; logs events to CloudWatch (serverless automation)     |
+| **VPC + Subnets + Route Tables**       | Network isolation (public + private)                                                                               |
+| **Security Groups**                    | Traffic control between components                                                                                 |
 
 ---
+## 🔍 Monitoring & Serverless Automation
+
+This section describes the concrete work done for the AWS “additional services / monitoring” task.
+
+## CloudWatch Logs for the Backend
+
+The Flask backend writes to backend/logs/app.log.
+
+The CloudWatch agent is installed on the EC2 instance and configured with
+file_path: /home/ec2-user/AWS_grocery/backend/logs/app.log.
+
+These logs are sent to the log group grocery-backend-logs in CloudWatch.
+
+Typical log lines include requests such as “Fetching info for user 1” and “Fetched all products”, which helps with debugging and observability.
+
+## CloudWatch CPU Alarm
+
+Metric used: EC2 → CPUUtilization for the backend instance (“My First instance”).
+
+Alarm: grocery-backend-high-cpu
+
+Condition: CPUUtilization > 70% for a 5-minute period.
+
+This gives an early signal if the instance is overloaded and connects monitoring to performance.
+
+## S3 → Lambda Integration (Avatar Uploads)
+
+Bucket: grocerymate-avatars-nithyasri2025 (used by the app for profile avatars).
+
+Lambda function: grocery-s3-logger (Python 3.x).
+
+Trigger: S3 “All object create events” on the avatar bucket.
+
+**Function behavior**:
+
+Reads the S3 event records
+
+Logs the bucket name and object key, e.g.
+New object in bucket grocerymate-avatars-nithyasri2025: Application+avatar.png
+
+Logs are written to CloudWatch Logs under /aws/lambda/grocery-s3-logger.
+
+This demonstrates a serverless, event-driven workflow on top of the core application.
 
 ## 🗂️ Repo Structure
 
@@ -159,6 +226,8 @@ Keep names aligned with your workflow. Common ones:
    * Application is reachable via **ALB DNS**
    * `/health` endpoint (if present) returns OK
    * App features work (browse/search/favorites/avatar)
+   * CloudWatch shows backend logs and Lambda logs
+   * EC2 CPUUtilization alarm is in OK state
 
 ---
 
@@ -207,6 +276,28 @@ Keep names aligned with your workflow. Common ones:
 * EC2 IAM role missing `s3:PutObject` / `s3:GetObject`
 * Wrong bucket name/region
 
+**Lambda not triggered on avatar upload**
+
+* Check S3 bucket event configuration (All object create events)
+
+* Confirm the Lambda trigger is enabled
+
+* Check Lambda’s CloudWatch log group for errors
+
+**CloudWatch logs not appearing**
+
+* Verify CloudWatch agent status on EC2
+
+* Check the file_path in the agent config matches backend/logs/app.log
+
+* Ensure IAM role for EC2 has CloudWatchLogsFullAccess (or equivalent)
+
+**CPU alarm never changes state**
+
+* Confirm the metric is CPUUtilization for the correct instance
+
+* Lower the threshold temporarily to force a state change for testing
+
 ---
 
 ## 🔁 Rollback / Cleanup
@@ -248,7 +339,10 @@ In the configured S3 bucket.
 * **RDS**: Managed PostgreSQL database
 * **S3**: Object storage (avatars/files)
 * **IAM**: Permissions and roles
-* **CloudWatch Logs**: Central logging
+* **CloudWatch Logs**: Central logging for EC2 and Lambda
+* **CloudWatch Alarm**: Threshold-based alert on a metric (e.g., high CPU)
+* **Lambda**: Serverless compute that runs code on events (e.g., S3 uploads)
+
 
 ---
 
@@ -256,8 +350,10 @@ In the configured S3 bucket.
 
 * AWS deployment setup (VPC, Subnets, SGs, IAM, ALB, EC2)
 * RDS PostgreSQL integration
-* S3 integration for avatar upload
-* CloudWatch logging
+* S3 integration for avatar upload (grocerymate-avatars-nithyasri2025)
+* CloudWatch logging for backend (grocery-backend-logs)
+* CloudWatch CPUUtilization alarm for the EC2 instance
+* S3 → Lambda integration (grocery-s3-logger reacting to avatar uploads and logging to CloudWatch)
 * Terraform structure + deployment workflow (GitHub Actions)
 * README documentation + diagrams
 
@@ -267,9 +363,10 @@ In the configured S3 bucket.
 
 * HTTPS using **ACM + ALB listener**
 * **CloudFront** for static assets
-* Monitoring dashboards + alarms
+* Monitoring dashboards + additional alarms (error rate, latency)
 * Autoscaling improvements
 * Add caching layer (Redis/ElastiCache)
+* Extend the Lambda function to validate/resize avatar images instead of only logging
 
 ---
 
